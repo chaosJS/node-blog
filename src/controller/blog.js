@@ -45,10 +45,18 @@ const newBlog = (blogData = {}) => {
 	});
 };
 const updataBlog = (blogId, blogdata = {}) => {
-	return true;
+	const { title, content } = blogdata;
+
+	const sql = `update blogs set title='${title}' , content = '${content}' where id = '${blogId}'`;
+	return exec(sql).then((updateData) => {
+		return updateData.affectedRows > 0;
+	});
 };
-const delBlog = (blogId) => {
-	return true;
+const delBlog = (blogId, author) => {
+	const sql = `delete from  blogs   where id = '${blogId}' and author = '${author}'`;
+	return exec(sql).then((delData) => {
+		return delData.affectedRows > 0;
+	});
 };
 const getPromiseData = (fileName) => {
 	return new Promise((res, rej) => {

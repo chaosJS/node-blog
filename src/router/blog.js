@@ -50,21 +50,27 @@ const handleBlogRouter = (req, res) => {
 	// updata a blog
 	if (method === 'POST' && req.path === '/api/blog/update') {
 		const { id } = req.query;
-		if (updataBlog(id, req.body)) {
-			return new SuccessModel();
-		} else {
-			return new ErrorModel(`update blog ${id} fail`);
-		}
+		const result = updataBlog(id, req.body);
+		return result.then((val) => {
+			if (val) {
+				return new SuccessModel();
+			} else {
+				return new ErrorModel(`update blog ${id} fail`);
+			}
+		});
 	}
 
 	// del a blog
 	if (method === 'POST' && req.path === '/api/blog/delete') {
 		const { id } = req.query;
-		if (delBlog(id)) {
-			return new SuccessModel(true, 'del success');
-		} else {
-			return new ErrorModel(`del blog ${id} fail`);
-		}
+		const result = delBlog(id, req.body.author);
+		return result.then((val) => {
+			if (val) {
+				return new SuccessModel();
+			} else {
+				return new ErrorModel(`del blog ${id} fail`);
+			}
+		});
 	}
 };
 module.exports = handleBlogRouter;

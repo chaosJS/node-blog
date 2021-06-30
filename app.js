@@ -4,7 +4,7 @@
 const qs = require('querystring');
 const handleBlogRouter = require('./src/router/blog');
 const handleUserRouter = require('./src/router/user');
-const { getPostData } = require('./src/utils');
+const { getPostData, parseCookieStr } = require('./src/utils');
 
 const serverHandler = (req, res) => {
 	res.setHeader('Content-Type', 'application/json');
@@ -27,6 +27,9 @@ const serverHandler = (req, res) => {
 	const { url } = req;
 	req.path = url.split('?')[0];
 	req.query = qs.parse(url.split('?')[1]);
+	// parse cookies
+	const cookieStr = req.headers.cookie || '';
+	req.cookie = parseCookieStr(cookieStr);
 	// 处理postData
 	getPostData(req).then((postData) => {
 		// so in router we can get post data in req.body
@@ -40,9 +43,11 @@ const serverHandler = (req, res) => {
 			return;
 		}
 
-		const userData = handleUserRouter(req, res);
-		if (userData) {
-			res.end(JSON.stringify(userData));
+		const userResult = handleUserRouter(req, res);
+		if (userResult) {
+			userResult.then((userData) => {
+				res.end(JSON.stringify(userData));
+			});
 			return;
 		}
 		// not match any router
