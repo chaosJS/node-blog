@@ -49,3 +49,17 @@
    alter user 'root'@'localhost' identified with mysql_native_password by '********';
    flush privileges;
    ```
+
+4. cookie vs session
+
+   1. cookie 大小限制， 安全问题
+   2. session 服务器性能
+
+5. 拆分 session 到 redis
+   1. brew install redis
+   2. redis-server // start redis server
+   3. redis-cli // start set/get op
+   4. set key value
+   5. get key // get value
+   6. keys \* //get all key list
+   7. del key

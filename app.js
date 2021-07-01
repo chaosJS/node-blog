@@ -4,8 +4,20 @@
 const qs = require('querystring');
 const handleBlogRouter = require('./src/router/blog');
 const handleUserRouter = require('./src/router/user');
-const { getPostData, parseCookieStr } = require('./src/utils');
+const {
+	getPostData,
+	parseCookieStr,
+	getCookieExpires,
+	// testRedis,
+} = require('./src/utils');
 
+// session data
+const SESSION_DATA = {};
+const key = 'session_id';
+const EXPIRES = 20 * 60 * 1000; //过期时长
+
+// test redis
+// testRedis();
 const serverHandler = (req, res) => {
 	res.setHeader('Content-Type', 'application/json');
 	res.setHeader('Access-Control-Allow-Origin', '*');
@@ -30,6 +42,30 @@ const serverHandler = (req, res) => {
 	// parse cookies
 	const cookieStr = req.headers.cookie || '';
 	req.cookie = parseCookieStr(cookieStr);
+
+	// parse session
+	let needSetCookie = false;
+	// //判断请求cookie中是否有被添加userid
+	let userId = req.cookie.userid;
+	if (userId) {
+		// 如果cookie中有userid直接使用
+		if (!SESSION_DATA[userId]) {
+			// SESSION_DATA 中userId 为空 说明不存在或者过期了 则清空
+			SESSION_DATA[userId] = {};
+		}
+	} else {
+		needSetCookie = true;
+		userId = `${Date.now()}_${Math.random()}`;
+		SESSION_DATA[userId] = {};
+		/** 此时 SESSION_DATA 的结构
+		 * {
+		 * 	"1625135395066_0.8444791312713953":{}
+		 * }
+		 */
+	}
+	//  req.session = {}
+	req.session = SESSION_DATA[userId];
+
 	// 处理postData
 	getPostData(req).then((postData) => {
 		// so in router we can get post data in req.body
@@ -38,6 +74,12 @@ const serverHandler = (req, res) => {
 
 		if (blogResult) {
 			blogResult.then((blogData) => {
+				if (needSetCookie) {
+					res.setHeader(
+						'Set-Cookie',
+						`userid=${userId};path=/ httpOnly; expires=${getCookieExpires()}`
+					);
+				}
 				res.end(JSON.stringify(blogData));
 			});
 			return;
@@ -46,6 +88,12 @@ const serverHandler = (req, res) => {
 		const userResult = handleUserRouter(req, res);
 		if (userResult) {
 			userResult.then((userData) => {
+				if (needSetCookie) {
+					res.setHeader(
+						'Set-Cookie',
+						`userid=${userId};path=/ httpOnly; expires=${getCookieExpires()}`
+					);
+				}
 				res.end(JSON.stringify(userData));
 			});
 			return;
