@@ -7,8 +7,14 @@ const {
 	delBlog,
 	getPromiseData,
 } = require('../controller/blog');
-
 const { SuccessModel, ErrorModel } = require('../model/resModel');
+
+// define a login check func
+const loginCheck = (req) => {
+	if (!req.session.username) {
+		return Promise.resolve(new ErrorModel('you are not login'));
+	}
+};
 const handleBlogRouter = (req, res) => {
 	const { method } = req;
 
@@ -22,7 +28,8 @@ const handleBlogRouter = (req, res) => {
 				return getPromiseData(bData.next);
 			})
 			.then((cData) => {
-				console.log(cData.data);
+				// this will log c data
+				// console.log(cData.data);
 			});
 		const { author, keyword } = req.query;
 		// const blogList = getBlogList(author, keyword);
@@ -35,13 +42,23 @@ const handleBlogRouter = (req, res) => {
 		const { id } = req.query;
 		const blogRes = getBlogDetail(id);
 		return blogRes.then((blogDetail) => {
-			return new SuccessModel(blogDetail);
+			console.log(blogDetail);
+			if (blogDetail) {
+				return new SuccessModel(blogDetail);
+			} else {
+				return new ErrorModel('no blog detail');
+			}
 		});
 	}
 
 	// new a blog
 	if (method === 'POST' && req.path === '/api/blog/new') {
+		const loginCheckResult = loginCheck(req);
+		if (loginCheckResult) {
+			return loginCheckResult;
+		}
 		// return new SuccessModel(newBlog(req.body));
+		req.body.author = req.session.username;
 		const blogRes = newBlog(req.body);
 		return blogRes.then((newBlogId) => {
 			return new SuccessModel(newBlogId);
@@ -50,6 +67,10 @@ const handleBlogRouter = (req, res) => {
 	// updata a blog
 	if (method === 'POST' && req.path === '/api/blog/update') {
 		const { id } = req.query;
+		const loginCheckResult = loginCheck(req);
+		if (loginCheckResult) {
+			return loginCheckResult;
+		}
 		const result = updataBlog(id, req.body);
 		return result.then((val) => {
 			if (val) {
@@ -62,8 +83,12 @@ const handleBlogRouter = (req, res) => {
 
 	// del a blog
 	if (method === 'POST' && req.path === '/api/blog/delete') {
+		const loginCheckResult = loginCheck(req);
+		if (loginCheckResult) {
+			return loginCheckResult;
+		}
 		const { id } = req.query;
-		const result = delBlog(id, req.body.author);
+		const result = delBlog(id, req.session.username);
 		return result.then((val) => {
 			if (val) {
 				return new SuccessModel();

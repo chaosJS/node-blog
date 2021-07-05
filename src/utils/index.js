@@ -1,5 +1,5 @@
 const redis = require('redis');
-
+const crypto = require('crypto');
 const getPostData = (req) => {
 	return new Promise((reslove) => {
 		if (
@@ -58,9 +58,18 @@ const testRedis = () => {
 		redisClient.quit();
 	});
 };
+
+// 	保管好
+const SECRET_KEY = 'WAKTR_$1da#';
+const genPassword = (password) => {
+	const pwdStr = `password=${password}&key=${SECRET_KEY}`;
+	let md5 = crypto.createHash('md5');
+	return md5.update(pwdStr).digest('hex');
+};
 module.exports = {
 	getPostData,
 	parseCookieStr,
 	getCookieExpires,
 	testRedis,
+	genPassword,
 };

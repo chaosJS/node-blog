@@ -63,3 +63,13 @@
    5. get key // get value
    6. keys \* //get all key list
    7. del key
+6. log
+7. crontab 拆分日志
+   1. `crontab -e ` 编辑 `* 0 * * * sh /Users/lichao/projects/node-doc/src/utils/copy.sh`
+   2. 每天凌晨 0：00 分触发 copy.sh
+   3. `crontab -l` 列出所有任务
+8. 安全
+   1. 使用 mysql 的 escape 转义 sql 语句 防止 sql 注入
+   2. xss 没有对用户输入的文本进行过滤，就插入到 HTML 中 用户输入/URL 参数/POST 参数 都要过滤
+   3. 输出的 html/js/css 也要过滤
+   4. mysql 用户密码加密

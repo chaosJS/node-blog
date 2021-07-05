@@ -30,7 +30,7 @@ const newBlog = (blogData = {}) => {
 		title,
 		content,
 		// 暂时
-		author = '佚名',
+		author,
 		createtime = Date.now(),
 	} = blogData;
 	const sql = `

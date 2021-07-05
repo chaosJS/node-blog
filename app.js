@@ -4,6 +4,7 @@
 const qs = require('querystring');
 const handleBlogRouter = require('./src/router/blog');
 const handleUserRouter = require('./src/router/user');
+const { access } = require('./src/utils/log');
 const {
 	getPostData,
 	parseCookieStr,
@@ -19,8 +20,16 @@ const EXPIRES = 20 * 60 * 1000; //过期时长
 // test redis
 // testRedis();
 const serverHandler = (req, res) => {
+	// log access log
+
+	access(
+		`${req.method} -- ${req.url} -- ${
+			req.headers['user-agent']
+		} -- ${Date.now()}`
+	);
 	res.setHeader('Content-Type', 'application/json');
 	res.setHeader('Access-Control-Allow-Origin', '*');
+	res.setHeader('Access-Control-Allow-Credentials', true);
 	res.setHeader(
 		'Access-Control-Allow-Methods',
 		'HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS'
@@ -65,7 +74,6 @@ const serverHandler = (req, res) => {
 	}
 	//  req.session = {}
 	req.session = SESSION_DATA[userId];
-
 	// 处理postData
 	getPostData(req).then((postData) => {
 		// so in router we can get post data in req.body
@@ -77,7 +85,7 @@ const serverHandler = (req, res) => {
 				if (needSetCookie) {
 					res.setHeader(
 						'Set-Cookie',
-						`userid=${userId};path=/ httpOnly; expires=${getCookieExpires()}`
+						`userid=${userId};  samesite=true; path=/; httpOnly; expires=${getCookieExpires()}`
 					);
 				}
 				res.end(JSON.stringify(blogData));
@@ -91,7 +99,7 @@ const serverHandler = (req, res) => {
 				if (needSetCookie) {
 					res.setHeader(
 						'Set-Cookie',
-						`userid=${userId};path=/ httpOnly; expires=${getCookieExpires()}`
+						`userid=${userId}; domain=localhost; path=/; httpOnly; expires=${getCookieExpires()}`
 					);
 				}
 				res.end(JSON.stringify(userData));
